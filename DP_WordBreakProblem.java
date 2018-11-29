@@ -9,8 +9,8 @@ import java.util.Set;
 /**
  * Given a dictionary of words and a string of characters, find if the string of characters can be broken into individual valid words from the dictionary.
  Example:
- Dictionary: arrays, dynamic, heaps, IDeserve, learn, learning, linked, list, platform, programming, stacks, trees
- String    : IDeservelearningplatform
+ Dictionary: "this", "th", "is", "famous", "Word", "break", "b","r", "e", "a", "k", "br", "bre", "brea", "ak", "problem"
+ String    : Wordbreakproblem
  Output   : true
  Because the string can be broken into valid words: IDeserve learning platform
  */
