@@ -1,6 +1,6 @@
 import java.util.*;
 
-public class WorldQuantTrie {
+public class WQ_Q3Trie {
     @Override
     public String toString() {
         return "WorldQuantTrie{" +
@@ -17,11 +17,11 @@ public class WorldQuantTrie {
     private boolean isValidWord = false;
 
 
-    public WorldQuantTrie(){
+    public WQ_Q3Trie(){
         this(null);
     }
 
-    public WorldQuantTrie(String value){
+    public WQ_Q3Trie(String value){
         this.value = value;
         children = new HashMap<Character, WorldQuantTrie>();//tat ca node con cua node hien tai
     }
@@ -118,7 +118,7 @@ public class WorldQuantTrie {
 
     public static void main(String ...s){
 
-        WorldQuantTrie trie = new WorldQuantTrie();
+        WQ_Q3Trie trie = new WorldQuantTrie();
         trie.insert("a");
         trie.insert("an");
         trie.insert("and");
