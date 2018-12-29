@@ -16,6 +16,7 @@
     }
 
 
+    //Using Binary search - logN
     static int find(int k,List<Integer> source){
 
         int low =0;
@@ -35,4 +36,20 @@
         } else {
             return source.get(low);
         }
+    }
+
+//dung vet can, O(n)
+static int bruteForce(int k,List<Integer> d){
+        int minAbd = Math.abs(k-d.get(0));
+        int indexFound = 0;
+        for (int i =1 ; i < d.size();i++
+        ) {
+            int temp = Math.abs(k-d.get(i));
+            if(temp < minAbd){
+                minAbd = temp;
+                indexFound = i;
+            }
+        }
+        
+        return d.get(indexFound);
     }
