@@ -10,6 +10,7 @@
         d.add(15);
         d.add(19);
 
+        int k = -900;
         System.out.println(find(k,d));
 
     }
