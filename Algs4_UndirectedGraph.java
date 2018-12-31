@@ -155,16 +155,15 @@ public class Algs4_UndirectedGraph {
 
     static class Cycle {
         Algs4_UndirectedGraph basicGraph;
-        int [] pointToPreviousVertex;
-        boolean hasCycle ;
-        boolean [] visited; //danh dau nhung vertex da visit
+        private boolean hasCycle ;
+        private boolean [] visited; //danh dau nhung vertex da visit
         public Cycle(Algs4_UndirectedGraph graph){
             this.basicGraph = graph;
-            pointToPreviousVertex = new int[basicGraph.numVertices];
             visited = new boolean[graph.numVertices];
             for(int i =0; i < graph.numVertices; i ++){
                 if(!visited[i]) {
-                    dfs(i,i);
+                    //parent cua dinh dau tien ko co, nen lay la  -1
+                    dfs(i,-1);
                 }
             }
         }
@@ -178,7 +177,6 @@ public class Algs4_UndirectedGraph {
             for (Integer v : adjList
             ) {
                 if(!visited[v]){
-                    pointToPreviousVertex[v] = sourceVertex;
                     dfs(v,sourceVertex);
                 } else if(v != parent) {
                     hasCycle = true;
@@ -189,6 +187,47 @@ public class Algs4_UndirectedGraph {
 
         public boolean hasCycle(){
             return hasCycle;
+        }
+    }
+
+
+    static class TwoColor {
+        Algs4_UndirectedGraph basicGraph;
+        private boolean isTwoColorable ;
+        private boolean [] color;
+        private boolean [] visited; //danh dau nhung vertex da visit
+        public TwoColor(Algs4_UndirectedGraph graph){
+            this.basicGraph = graph;
+            visited = new boolean[graph.numVertices];
+            color = new boolean[graph.numVertices];
+            for(int i =0; i < graph.numVertices; i ++){
+                if(!visited[i]) {
+                    //parent cua dinh dau tien ko co, nen lay la  -1
+                    dfs(i);
+                }
+            }
+        }
+
+        //với mỗi dỉnh v, có 1 đỉnh kề u đã được thăm và u không phải parent của v thi có 1 chu trình
+        private void dfs(int sourceVertex){
+            //danh dau dinh da tham
+            visited[sourceVertex] = true;
+            List<Integer> adjList =
+                    basicGraph.getAdjacenList(sourceVertex);
+            for (Integer v : adjList
+            ) {
+                if(!visited[v]){
+                    color[v] = ! color[sourceVertex];
+                    dfs(v);
+                } else if(color[v] == color[sourceVertex]) {
+                    isTwoColorable = false;
+                }
+            }
+
+        }
+
+        public boolean isBipartite(){
+            return isTwoColorable;
         }
     }
 
@@ -213,7 +252,10 @@ public class Algs4_UndirectedGraph {
 
 
         Cycle cycle = new Cycle(basicGraph);
-        System.out.println(cycle.hasCycle);
+        System.out.println(cycle.hasCycle());
+
+        TwoColor twoColor = new TwoColor(basicGraph);
+        System.out.println(twoColor.isBipartite());
 
     }
 
