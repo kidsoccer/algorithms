@@ -7,7 +7,7 @@ import java.util.Stack;
 public class AdjacentMatrix_Djisktra {
 
     /**
-     * Implement AdjacentMatrix_Djisktra algorithm using adjacent matrix
+     * Implement Djisktra algorithm using adjacent matrix
      */
 
     static class Graph {
