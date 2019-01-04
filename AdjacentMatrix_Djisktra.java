@@ -89,6 +89,10 @@ public class AdjacentMatrix_Djisktra {
 
             private void shortestPath(){
 
+                if(target >= graph.graph.length) {
+                    System.out.println("Path not existing");
+                    return;
+                }
                 //buoc 2 : khi dinh target van chua duoc visit
                 while (!stp[target]){
                     int minVertex = minDistanceVertext();
