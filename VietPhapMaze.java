@@ -1,5 +1,3 @@
-import javafx.util.Pair;
-
 import java.util.*;
 
 public class VietPhapMaze {
@@ -8,98 +6,57 @@ public class VietPhapMaze {
     static final String DOT_CHAR = ".";
     String[][] maze;
     Set<Point> realVertices;
-    Stack<Edge> edges = new Stack<>();
 
     public VietPhapMaze(String[][] maze) {
         this.maze = maze;
-
          realVertices = detectPoints();
-
-        //weight
-        //for (Point p : realVertices
-        //    ) {
-        Point start = new Point(0, 1);
-        LinkedList<Point> path = new LinkedList<>();
-        List<Pair<Point, Point>> parent = new ArrayList<>();
-        parent.add(new Pair<>(start, null));
-        Stack<Point> paths = new Stack<>();
-        paths.push(start);
-        Stack<Edge> edges = new Stack<>();
-        Set<Point> visited = new HashSet<Point>();
-        dfs(start, visited, paths, edges);
-        //bfs(start)
-
-        System.out.println("==================");
-
-        while (!paths.isEmpty()){
-            System.out.println(paths.pop());
+        Set<Edge> edges = new HashSet<>();
+        Map<Point,Set<Point>> grap = new HashMap<>();
+        for (Point r : realVertices
+             ) {
+            Stack<Point> paths = new Stack<>();
+            paths.push(r);
+            Set<Point> visited = new HashSet<Point>();
+            dfs(r, visited, paths, edges,grap);
         }
 
-
-
-        //}
-
+        System.out.println("==================");
     }
 
 
-    private void dfs(Point p, Set<Point> visited,Stack<Point> path,List<Edge> edges) {
+    private void dfs(Point p, Set<Point> visited,Stack<Point> path,Set<Edge> edges,Map<Point,Set<Point>> grap) {
         visited.add(p);
         if (realVertices.contains(p)){
             path.push(p);
-    }
-        List<Point> adjs = getNextMoves(p,visited);
-
+            System.out.println(p);
+        }
+        List<Point> adjs = getNextMoves(p,visited,edges);
         for (Point temp : adjs
                 ) {
             if(!visited.contains(temp)){
                 if(realVertices.contains(temp)){
                     //build edge
                     Point toV = temp;
-                    edges.add(new Edge(path.peek(), toV, 0));
-                    //path.push(toV);
+                    Point fromV = path.peek();
+                    edges.add(new Edge(fromV, toV, 0));
+
+                    if(grap.containsKey(fromV)){
+                        grap.get(fromV).add(toV);
+                    } else {
+                        Set<Point> adjsList = new HashSet<>();
+                        adjsList.add(toV);
+                        grap.put(fromV,adjsList);
+                    }
                 }
-
-                dfs(temp,visited,path,edges);
-
+                dfs(temp,visited,path,edges,grap);
             }
         }
+
+        //remove point after done all it's children
 
         if(realVertices.contains(p)) {
             path.pop();
         }
-
-
-    }
-
-
-    private   Set<Edge>  bfs(Point start){
-        LinkedList<Point> points = new LinkedList<>();
-        Set<Edge> edges = new HashSet<>();
-        Set<Point> visited = new HashSet<>();
-        visited.add(start);
-        points.add(start);
-        Stack<Point> stack = new Stack<>();
-        stack.push(start);
-        while (!points.isEmpty()){
-            start = points.poll();
-
-            List<Point> next = getNextMoves(start,visited);
-            for (Point p: next
-                 ) {
-                if(!visited.contains(p)) {
-
-                    if (realVertices.contains(start) && realVertices.contains(p))
-                        edges.add(new Edge(stack.peek(), p, 0));
-                    }
-
-                    stack.push(p);
-                    visited.add(p);
-                    points.add(p);
-                }
-            }
-
-
-        return edges;
     }
 
     private Set<Point> detectPoints() {
@@ -114,7 +71,7 @@ public class VietPhapMaze {
                     if(degree % 2 != 0){
                         points.add(p);
                     } else {
-                        System.out.println(p);
+                        //System.out.println(p);
                     }
                 }
             }
@@ -122,9 +79,7 @@ public class VietPhapMaze {
         return points;
     }
 
-
-
-    private List<Point> getNextMoves(Point curentP, Set<Point> visited) {
+    private List<Point> getNextMoves(Point curentP, Set<Point> visited,Set<Edge> edges) {
 
         int w = maze.length;
         int h = maze[0].length;
@@ -134,24 +89,37 @@ public class VietPhapMaze {
 
 
         //left
-        if (curentP.y - 1 >= 0 && !visited.contains(new Point(curentP.x, curentP.y - 1)) && !maze[curentP.x][curentP.y - 1].equals(HASH_CHAR)) {
-            moves.add(new Point(curentP.x, curentP.y - 1));
+        if (curentP.y - 1 >= 0 && !maze[curentP.x][curentP.y - 1].equals(HASH_CHAR)) {
+            Point temp = new Point(curentP.x, curentP.y - 1);
+            //neu chua duoc tham hoac la 1 dinh va chua co canh
+            if(!visited.contains(temp) ) {
+                moves.add(new Point(curentP.x, curentP.y - 1));
+            }
         }
 
         //up
-        if (curentP.x - 1 >= 0 && !visited.contains(new Point(curentP.x - 1, curentP.y)) && !maze[curentP.x - 1][curentP.y].equals(HASH_CHAR)) {
-            moves.add(new Point(curentP.x - 1, curentP.y));
+        if (curentP.x - 1 >= 0  && !maze[curentP.x - 1][curentP.y].equals(HASH_CHAR)) {
+            Point temp = new Point(curentP.x - 1, curentP.y);
+            if(!visited.contains(temp) ) {
+                moves.add(new Point(curentP.x - 1, curentP.y));
+            }
         }
 
 
         //right
-        if (curentP.y + 1 < h && !visited.contains(new Point(curentP.x, curentP.y + 1)) && !maze[curentP.x][curentP.y + 1].equals(HASH_CHAR)) {
-            moves.add(new Point(curentP.x, curentP.y + 1));
+        if (curentP.y + 1 < h &&  !maze[curentP.x][curentP.y + 1].equals(HASH_CHAR)) {
+            Point temp = new Point(curentP.x, curentP.y + 1);
+            if(!visited.contains(temp) ) {
+                moves.add(new Point(curentP.x, curentP.y + 1));
+            }
         }
 
         //down
-        if (curentP.x + 1 < w && !visited.contains(new Point(curentP.x + 1, curentP.y)) && !maze[curentP.x + 1][curentP.y].equals(HASH_CHAR)) {
-            moves.add(new Point(curentP.x + 1, curentP.y));
+        if (curentP.x + 1 < w && !maze[curentP.x + 1][curentP.y].equals(HASH_CHAR)) {
+            Point temp = new Point(curentP.x + 1, curentP.y);
+            if(!visited.contains(temp)  ) {
+                moves.add(new Point(curentP.x + 1, curentP.y));
+            }
         }
 
         return moves;
