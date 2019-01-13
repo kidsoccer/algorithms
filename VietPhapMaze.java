@@ -7,19 +7,43 @@ public class VietPhapMaze {
     String[][] maze;
     Set<Point> realVertices;
 
+
     public VietPhapMaze(String[][] maze) {
         this.maze = maze;
         //find the vertices
         realVertices = detectPoints();
-         //link vertices togother - make edges
-        Map<Point,Set<Point>> edges = linkVertices();
-
+        //link vertices together - make edges
+        Map<Point, Set<Point>> adjacentList = linkVertices();
+        Set<Edge> edges = updateWeight(adjacentList);
         System.out.println("==================");
     }
 
-    private Map<Point,Set<Point>> linkVertices(){
+    private Set<Edge> updateWeight(Map<Point, Set<Point>> adjacentList) {
+
         Set<Edge> edges = new HashSet<>();
-        Map<Point,Set<Point>> grap = new HashMap<>();
+        adjacentList.entrySet().stream().forEach(
+                e -> {
+                    Set<Point> adj = e.getValue();
+                    for (Point toV : adj
+                            ) {
+                        int count = 0;
+                        Edge edge = new Edge(e.getKey(), toV, count);
+                        PriorityQueue<Integer> allPathLengh = new PriorityQueue<>();
+                        searchAllPaths(e.getKey(), toV, new HashSet<>(), new ArrayList<>(), allPathLengh);
+                        if (!allPathLengh.isEmpty()) {
+                            edge.setW(allPathLengh.peek());
+                        }
+                        edges.add(edge);
+                    }
+                }
+        );
+
+        return edges;
+    }
+
+    private Map<Point, Set<Point>> linkVertices() {
+        Set<Edge> edges = new HashSet<>();
+        Map<Point, Set<Point>> grap = new HashMap<>();
         for (Point r : realVertices
                 ) {
             Stack<Point> paths = new Stack<>();
@@ -27,45 +51,113 @@ public class VietPhapMaze {
             Set<Point> visited = new HashSet<Point>();
             Stack<Point> history = new Stack<>();
 
-            dfs(r, visited, paths, edges,grap,history);
+            dfs(r, visited, paths, edges, grap, history);
         }
 
         return grap;
     }
-    private void dfs(Point p, Set<Point> visited,Stack<Point> path,Set<Edge> edges,Map<Point,Set<Point>> grap,Stack<Point> history) {
+
+
+    // A recursive function to print
+    // all paths from 'u' to 'd'.
+    // isVisited[] keeps track of
+    // vertices in current path.
+    // localPathList<> stores actual
+    // vertices in the current path
+
+    private void searchAllPaths(Point u, Point d,
+                                Set<Point> isVisited,
+                                List<Point> localPathList, PriorityQueue<Integer> allPathLengh) {
+
+        // Mark the current node
+        isVisited.add(u);
+
+        if (u.equals(d)) {
+            System.out.println(localPathList);
+            allPathLengh.add(localPathList.size());
+            // if match found then no need to traverse more till depth
+            isVisited.remove(u);
+            return;
+        }
+
+        // Recur for all the vertices
+        // adjacent to current vertex
+        List<Point> moves = getNextMoves(u, isVisited);
+        for (Point i : moves) {
+            if (!isVisited.contains(i)) {
+                // store current node
+                // in path[]
+                localPathList.add(i);
+                searchAllPaths(i, d, isVisited, localPathList, allPathLengh);
+
+                // remove current node
+                // in path[]
+                localPathList.remove(i);
+            }
+        }
+
+        // Mark the current node
+        isVisited.remove(u);
+    }
+
+
+    private void countWeight(int count, Point from, Point to, Set<Point> visited, Edge e, Stack<Point> h) {
+        visited.add(from);
+        h.push(from);
+        List<Point> moves = getNextMoves(from, visited);
+        for (Point p : moves
+                ) {
+
+            if (!visited.contains(p)) {
+                if (p.equals(to)) {
+                    //found and return
+                    System.out.println(count);
+                    e.setW(count);
+                    return;
+                } else {
+                    countWeight(count, p, to, visited, e, h);
+                    count++;
+                }
+            }
+
+        }
+        count--;
+    }
+
+    private void dfs(Point p, Set<Point> visited, Stack<Point> path, Set<Edge> edges, Map<Point, Set<Point>> grap, Stack<Point> history) {
         visited.add(p);
         history.push(p);
 
-        if (realVertices.contains(p)){
+        if (realVertices.contains(p)) {
             path.push(p);
-            System.out.println(p);
+            //System.out.println(p);
         }
-        List<Point> adjs = getNextMoves(p,visited);
+        List<Point> adjs = getNextMoves(p, visited);
         for (Point temp : adjs
                 ) {
-            if(!visited.contains(temp)){
+            if (!visited.contains(temp)) {
 
                 history.push(p);
 
-                if(realVertices.contains(temp)){
+                if (realVertices.contains(temp)) {
                     //build edge
                     Point toV = temp;
                     Point fromV = path.peek();
                     //edges.add(new Edge(fromV, toV, history.size()));
                     history.clear();
-                    if(grap.containsKey(fromV)){
+                    if (grap.containsKey(fromV)) {
                         grap.get(fromV).add(toV);
                     } else {
                         Set<Point> adjsList = new HashSet<>();
                         adjsList.add(toV);
-                        grap.put(fromV,adjsList);
+                        grap.put(fromV, adjsList);
                     }
                 }
-                dfs(temp,visited,path,edges,grap,history);
+                dfs(temp, visited, path, edges, grap, history);
             }
         }
         //remove point after done all it's children
-        if(realVertices.contains(p)) {
+        if (realVertices.contains(p)) {
             path.pop();
         }
 
@@ -80,7 +172,7 @@ public class VietPhapMaze {
                 if (maze[i][j].equals(DOT_CHAR)) {
                     Point p = new Point(i, j);
                     int degree = getDegree(p);
-                    if(degree % 2 != 0){
+                    if (degree % 2 != 0) {
                         points.add(p);
                     } else {
                         //System.out.println(p);
@@ -104,24 +196,24 @@ public class VietPhapMaze {
         if (curentP.y - 1 >= 0 && !maze[curentP.x][curentP.y - 1].equals(HASH_CHAR)) {
             Point temp = new Point(curentP.x, curentP.y - 1);
             //neu chua duoc tham hoac la 1 dinh va chua co canh
-            if(!visited.contains(temp) ) {
+            if (!visited.contains(temp)) {
                 moves.add(new Point(curentP.x, curentP.y - 1));
             }
         }
 
         //up
-        if (curentP.x - 1 >= 0  && !maze[curentP.x - 1][curentP.y].equals(HASH_CHAR)) {
+        if (curentP.x - 1 >= 0 && !maze[curentP.x - 1][curentP.y].equals(HASH_CHAR)) {
             Point temp = new Point(curentP.x - 1, curentP.y);
-            if(!visited.contains(temp) ) {
+            if (!visited.contains(temp)) {
                 moves.add(new Point(curentP.x - 1, curentP.y));
             }
         }
 
 
         //right
-        if (curentP.y + 1 < h &&  !maze[curentP.x][curentP.y + 1].equals(HASH_CHAR)) {
+        if (curentP.y + 1 < h && !maze[curentP.x][curentP.y + 1].equals(HASH_CHAR)) {
             Point temp = new Point(curentP.x, curentP.y + 1);
-            if(!visited.contains(temp) ) {
+            if (!visited.contains(temp)) {
                 moves.add(new Point(curentP.x, curentP.y + 1));
             }
         }
@@ -129,7 +221,7 @@ public class VietPhapMaze {
         //down
         if (curentP.x + 1 < w && !maze[curentP.x + 1][curentP.y].equals(HASH_CHAR)) {
             Point temp = new Point(curentP.x + 1, curentP.y);
-            if(!visited.contains(temp)  ) {
+            if (!visited.contains(temp)) {
                 moves.add(new Point(curentP.x + 1, curentP.y));
             }
         }
@@ -147,14 +239,14 @@ public class VietPhapMaze {
 
         int w = maze.length;
         int h = maze[0].length;
-        if(curentP.equals(new Point(0,0))){
+        if (curentP.equals(new Point(0, 0))) {
             System.out.println("df");
         }
 
         //just allowed to move by vertical or horizontal
         final List<Point> moves = new ArrayList<>();
         //up
-        if (curentP.x - 1 >= 0  && !maze[curentP.x - 1][curentP.y].equals(HASH_CHAR)) {
+        if (curentP.x - 1 >= 0 && !maze[curentP.x - 1][curentP.y].equals(HASH_CHAR)) {
             moves.add(new Point(curentP.x - 1, curentP.y));
         }
         //left
@@ -162,7 +254,7 @@ public class VietPhapMaze {
             moves.add(new Point(curentP.x, curentP.y - 1));
         }
         //right
-        if (curentP.y + 1 < h &&  !maze[curentP.x][curentP.y + 1].equals(HASH_CHAR)) {
+        if (curentP.y + 1 < h && !maze[curentP.x][curentP.y + 1].equals(HASH_CHAR)) {
             moves.add(new Point(curentP.x, curentP.y + 1));
         }
         //down
@@ -173,97 +265,95 @@ public class VietPhapMaze {
     }
 
 
-static class Edge {
-    Point from;
-    Point to;
-    int w;
+    static class Edge {
+        Point from;
+        Point to;
+        int w;
 
-    public Point getFrom() {
-        return from;
+        public Point getFrom() {
+            return from;
+        }
+
+        public void setFrom(Point from) {
+            this.from = from;
+        }
+
+        public Point getTo() {
+            return to;
+        }
+
+        public void setTo(Point to) {
+            this.to = to;
+        }
+
+        public int getW() {
+            return w;
+        }
+
+        public void setW(int w) {
+            this.w = w;
+        }
+
+        public Edge(Point from, Point to, int w) {
+            this.from = from;
+            this.to = to;
+            this.w = w;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Edge edge = (Edge) o;
+            return w == edge.w &&
+                    Objects.equals(from, edge.from) &&
+                    Objects.equals(to, edge.to);
+        }
+
+        @Override
+        public int hashCode() {
+
+            return Objects.hash(from, to, w);
+        }
     }
 
-    public void setFrom(Point from) {
-        this.from = from;
+
+    static class Point {
+        int x;
+        int y;
+
+        public Point(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Point point = (Point) o;
+            return x == point.x &&
+                    y == point.y;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(x, y);
+        }
+
+        @Override
+        public String toString() {
+            return "Point{" +
+                    "x=" + x +
+                    ", y=" + y +
+                    '}';
+        }
+
     }
 
-    public Point getTo() {
-        return to;
-    }
-
-    public void setTo(Point to) {
-        this.to = to;
-    }
-
-    public int getW() {
-        return w;
-    }
-
-    public void setW(int w) {
-        this.w = w;
-    }
-
-    public Edge(Point from, Point to, int w) {
-        this.from = from;
-        this.to = to;
-        this.w = w;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Edge edge = (Edge) o;
-        return w == edge.w &&
-                Objects.equals(from, edge.from) &&
-                Objects.equals(to, edge.to);
-    }
-
-    @Override
-    public int hashCode() {
-
-        return Objects.hash(from, to, w);
-    }
-}
-
-
-
-
-static class Point {
-    int x;
-    int y;
-
-    public Point(int x, int y) {
-        this.x = x;
-        this.y = y;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Point point = (Point) o;
-        return x == point.x &&
-                y == point.y;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(x, y);
-    }
-
-    @Override
-    public String toString() {
-        return "Point{" +
-                "x=" + x +
-                ", y=" + y +
-                '}';
-    }
-
-}
-
-    private Set<Point> expected(){
+    private Set<Point> expected() {
         Set<Point> expected = new HashSet<>();
-        expected.add(new Point(0,1));
+        expected.add(new Point(0, 1));
 
 
         return expected;
