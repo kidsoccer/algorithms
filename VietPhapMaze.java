@@ -9,37 +9,50 @@ public class VietPhapMaze {
 
     public VietPhapMaze(String[][] maze) {
         this.maze = maze;
-         realVertices = detectPoints();
-        Set<Edge> edges = new HashSet<>();
-        Map<Point,Set<Point>> grap = new HashMap<>();
-        for (Point r : realVertices
-             ) {
-            Stack<Point> paths = new Stack<>();
-            paths.push(r);
-            Set<Point> visited = new HashSet<Point>();
-            dfs(r, visited, paths, edges,grap);
-        }
+        //find the vertices
+        realVertices = detectPoints();
+         //link vertices togother - make edges
+        Map<Point,Set<Point>> edges = linkVertices();
 
         System.out.println("==================");
     }
 
+    private Map<Point,Set<Point>> linkVertices(){
+        Set<Edge> edges = new HashSet<>();
+        Map<Point,Set<Point>> grap = new HashMap<>();
+        for (Point r : realVertices
+                ) {
+            Stack<Point> paths = new Stack<>();
+            paths.push(r);
+            Set<Point> visited = new HashSet<Point>();
+            Stack<Point> history = new Stack<>();
 
-    private void dfs(Point p, Set<Point> visited,Stack<Point> path,Set<Edge> edges,Map<Point,Set<Point>> grap) {
+            dfs(r, visited, paths, edges,grap,history);
+        }
+
+        return grap;
+    }
+    private void dfs(Point p, Set<Point> visited,Stack<Point> path,Set<Edge> edges,Map<Point,Set<Point>> grap,Stack<Point> history) {
         visited.add(p);
+        history.push(p);
+
         if (realVertices.contains(p)){
             path.push(p);
             System.out.println(p);
         }
-        List<Point> adjs = getNextMoves(p,visited,edges);
+        List<Point> adjs = getNextMoves(p,visited);
         for (Point temp : adjs
                 ) {
             if(!visited.contains(temp)){
+
+                history.push(p);
+
                 if(realVertices.contains(temp)){
                     //build edge
                     Point toV = temp;
                     Point fromV = path.peek();
-                    edges.add(new Edge(fromV, toV, 0));
-
+                    //edges.add(new Edge(fromV, toV, history.size()));
+                    history.clear();
                     if(grap.containsKey(fromV)){
                         grap.get(fromV).add(toV);
                     } else {
@@ -48,15 +61,14 @@ public class VietPhapMaze {
                         grap.put(fromV,adjsList);
                     }
                 }
-                dfs(temp,visited,path,edges,grap);
+                dfs(temp,visited,path,edges,grap,history);
             }
         }
-
         //remove point after done all it's children
-
         if(realVertices.contains(p)) {
             path.pop();
         }
+
     }
 
     private Set<Point> detectPoints() {
@@ -79,7 +91,7 @@ public class VietPhapMaze {
         return points;
     }
 
-    private List<Point> getNextMoves(Point curentP, Set<Point> visited,Set<Edge> edges) {
+    private List<Point> getNextMoves(Point curentP, Set<Point> visited) {
 
         int w = maze.length;
         int h = maze[0].length;
@@ -166,6 +178,29 @@ static class Edge {
     Point to;
     int w;
 
+    public Point getFrom() {
+        return from;
+    }
+
+    public void setFrom(Point from) {
+        this.from = from;
+    }
+
+    public Point getTo() {
+        return to;
+    }
+
+    public void setTo(Point to) {
+        this.to = to;
+    }
+
+    public int getW() {
+        return w;
+    }
+
+    public void setW(int w) {
+        this.w = w;
+    }
 
     public Edge(Point from, Point to, int w) {
         this.from = from;
