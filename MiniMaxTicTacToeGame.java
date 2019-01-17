@@ -35,10 +35,10 @@ public class MiniMaxTicTacToeGame {
 
 
     static class Board {
-        static final String AI_PLAYER = "x"; //min player
-        static final String HUMMAN_PLAYER = "o"; //max player
+        static final String AI_PLAYER = "x"; //max player /computer /AI
+        static final String HUMMAN_PLAYER = "o"; //player/human
 
-        static final String UN_TOUCHED = "_"; //max player
+        static final String UN_TOUCHED = "_"; //untoached cell in board , no x or o
         String gameBorad[][];
         Board(String[][] board) {
             this.gameBorad = board;
@@ -64,7 +64,7 @@ public class MiniMaxTicTacToeGame {
             if (!gameBorad[2][0].equals(UN_TOUCHED) && gameBorad[2][0].equals(player) && gameBorad[2][0].equals(gameBorad[1][1]) && gameBorad[1][1].equals(gameBorad[0][2])) {
                 return true;
             }
-            //game draw
+            //game draw - no win , no loose
             return false;
         }
 
