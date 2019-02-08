@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 
 public class TrieNER {
 
-    public static void main(String ... s){
+   public static void main(String ... s){
 
         final Map<String,Trie> dictionary = new HashMap<>();
 
@@ -47,40 +47,23 @@ public class TrieNER {
         String [] arr = sentence.split(" ");
         for (int i = 0; i< arr.length;i++){
                 String prefix = arr[i];
+                if(!dictionary.containsKey(prefix.toLowerCase()))
+                    continue;
 
-                int count = i;
-                while(count< arr.length -1) {
-                    if (Objects.nonNull(isInDic(prefix, dictionary))){
-                        result.add(prefix);
+                    int count = i;
+                    while (count < arr.length - 1) {
+                        if (Objects.nonNull(isInDic(prefix, dictionary))) {
+                            result.add(prefix);
+                        }
+                        count++;
+                        prefix = prefix + " " + arr[count];
                 }
-
-
-                    count ++;
-                    prefix = prefix + " " + arr[count ];
-
-
-                }
-
 
         }
         return result;
 
     }
 
-    static String   isInDic(List<String> words,Map<String,Trie> dictionary){
-        //String [] wordArr = words.toLowerCase().split(" ");
-        String prefix = words.get(0);
-        List<String> children =  words.stream().skip(1).collect(Collectors.toList());
-        if (dictionary.containsKey(prefix)){
-            if(!children.isEmpty()) {
-                Trie trie = dictionary.get(prefix);
-                return
-                        trie.find(children);
-            }
-            return prefix;
-        }
-        return null;
-    }
 
     static String isInDic(String words,Map<String,Trie> dictionary){
         String [] wordArr = words.toLowerCase().split(" ");
