@@ -1,0 +1,100 @@
+package hiip.asia;
+
+import java.util.*;
+
+public class TrieNode {
+    protected Map<Character,TrieNode> children;
+    protected int occurences = 0;
+    private String value; // string so far
+
+
+    public TrieNode(){
+        this(null);
+    }
+
+    public TrieNode(String value){
+        this.value = value;
+        children = new HashMap<>();//tat ca node con cua node hien tai
+    }
+
+    private void add(char c){
+        //add new node
+        String val;
+        if(this.value == null){
+            val = Character.toString(c);
+        } else{
+            //apend
+            val = this.value +c;
+        }
+
+        TrieNode node = new TrieNode(val);
+
+        children.put(c,node);
+
+       // return node;
+
+    }
+
+
+    public TrieNode insert(String word){
+        if(word == null){
+            throw new IllegalArgumentException("Cannot add null to a trie");
+        }
+        TrieNode node = this;
+        for (char c : word.toCharArray()){
+            if(!node.children.containsKey(c)){
+                node.add(c);
+            }
+            node = node.children.get(c);
+        }
+        node.occurences+=1;
+        return node;
+    }
+
+    public Optional<String> find(String word){
+        TrieNode node = this;
+        for (char c : word.toCharArray()){
+            if(!node.children.containsKey(c)){
+                return null;
+            }
+            node = node.children.get(c);
+        }
+
+        if(node.occurences > 0) {
+            return Optional.of(node.value);
+        }
+        return Optional.empty();
+    }
+
+
+    public static void main(String ...s){
+
+        TrieNode root = new TrieNode();
+
+        //to 10
+        PriorityQueue<TrieNode> df = new PriorityQueue<>(new Comparator<TrieNode>() {
+            @Override
+            public int compare(TrieNode o1, TrieNode o2) {
+                return o2.occurences -o1.occurences ;
+            }
+        });
+
+        String graph = "love is love is the lover loves his loves";
+        String [] sd = graph.split(" ");
+        for (String token: sd
+             ) {
+          df.add(root.insert(token));
+
+        }
+
+        for (int i = 0; i< 6; i++){
+            TrieNode node = df.poll();
+            System.out.println(node.value + ":" + node.occurences);
+        }
+
+        // System.out.println(trie.allPrefixes());
+        //System.out.println(root.autoComplete("hel"));
+        System.out.println("");
+
+    }
+}
